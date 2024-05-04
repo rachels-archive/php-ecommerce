@@ -2,14 +2,14 @@
 session_start();
 require_once 'connection.php';
 
-try{
+try {
     $conn = new PDO("mysql:host=$dbhost;dbname=$dbname", $dbuser, $dbpass);
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
+} catch (PDOException $e) {
     echo "Error: " . $e->getMessage();
 }
 
-if(isset($_POST["signup"]))  {
+if (isset($_POST["signup"])) {
 
     $err = NULL;
 
@@ -20,68 +20,64 @@ if(isset($_POST["signup"]))  {
 
     // check if any field is empty
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        $err = "All fields are required.<br>"; 
+        $err = "All fields are required.<br>";
     } else {
-    
-    // check if email is valid
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $err = "Please enter a valid email.<br>";
-    }
 
-    // check password length
-    if (strlen($password) < 8) {
-        $err = "Password must have at least 8 characters.<br>";
-    }
+        // check if email is valid
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $err = "Please enter a valid email.<br>";
+        }
 
-    // validate password strength
-    $uppercase = preg_match('@[A-Z]@', $password);
-    $number    = preg_match('@[0-9]@', $password);
+        // check password length
+        if (strlen($password) < 8) {
+            $err = "Password must have at least 8 characters.<br>";
+        }
 
-    if (!$uppercase || !$number) {
-        $err = "Password must contain at least one uppercase letter and a number.<br>";
-    }
-    
-    // validate password confirmation
-    if ($password !== $confirm_password) {
-        $err = "Passwords must match.";
-    }
+        // validate password strength
+        $uppercase = preg_match('@[A-Z]@', $password);
+        $number    = preg_match('@[0-9]@', $password);
 
-    // check if username exits
-    $stmt1 = $conn->prepare("SELECT username FROM user WHERE BINARY username= BINARY :username");
-    $stmt1->bindParam(':username', $username);
-    $stmt1->execute();
-    $row1 = $stmt1->fetch(PDO::FETCH_ASSOC);
+        if (!$uppercase || !$number) {
+            $err = "Password must contain at least one uppercase letter and a number.<br>";
+        }
 
-    // check if email is already registered
-    $stmt2 = $conn->prepare("SELECT email FROM user WHERE email = :email");
-    $stmt2->bindParam(':email', $email);
-    $stmt2->execute();
-    $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
+        // validate password confirmation
+        if ($password !== $confirm_password) {
+            $err = "Passwords must match.";
+        }
 
-    if ($row1) {
-        $err = "Username already taken";
-    } else if ($row2){
-        $err = "Email already registered";
-    }
-    
-    if (!isset($err)) {
-        // hash password to make it more secure
-        $password_hash = password_hash($password, PASSWORD_DEFAULT);
+        // check if username exits
+        $stmt1 = $conn->prepare("SELECT username FROM user WHERE BINARY username= BINARY :username");
+        $stmt1->bindParam(':username', $username);
+        $stmt1->execute();
+        $row1 = $stmt1->fetch(PDO::FETCH_ASSOC);
 
-        $query = "INSERT INTO user (username, email, password_hash) values (:username, :email, :password_hash)";
-        $stmt3 = $conn->prepare($query); 
+        // check if email is already registered
+        $stmt2 = $conn->prepare("SELECT email FROM user WHERE email = :email");
+        $stmt2->bindParam(':email', $email);
+        $stmt2->execute();
+        $row2 = $stmt2->fetch(PDO::FETCH_ASSOC);
 
-        $stmt3->bindParam(':username', $username);
-        $stmt3->bindParam(':email', $email);
-        $stmt3->bindParam(':password_hash', $password_hash);
+        if ($row1) {
+            $err = "Username already taken";
+        } else if ($row2) {
+            $err = "Email already registered";
+        }
 
-        $stmt3->execute();
-        $sucess_msg = "Account created successfully<br>";
-       // echo "<a href='login.php'>Click to Login</a>";
-        //header("Location: index.html");
-       // exit;
-    }
+        if (!isset($err)) {
+            // hash password to make it more secure
+            $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
+            $query = "INSERT INTO user (username, email, password_hash) values (:username, :email, :password_hash)";
+            $stmt3 = $conn->prepare($query);
+
+            $stmt3->bindParam(':username', $username);
+            $stmt3->bindParam(':email', $email);
+            $stmt3->bindParam(':password_hash', $password_hash);
+
+            $stmt3->execute();
+            $sucess_msg = "Account created successfully<br>";
+        }
     }
 
     $conn = null;
@@ -91,6 +87,7 @@ if(isset($_POST["signup"]))  {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -106,43 +103,46 @@ if(isset($_POST["signup"]))  {
             justify-content: center;
             height: 100vh;
             margin: 0;
+            background: #d0d9b3;
         }
 
         form {
             width: 400px;
             border: 1px solid #000;
-            border-radius: 20px; 
+            border-radius: 20px;
             padding: 30px;
+            background: #fff;
         }
-     
     </style>
 </head>
+
 <body>
-<form class="text-center mx-auto" id="signup" action="signup.php" method="post" novalidate>
-    <div><h1>Sign Up</h1></div>
-    <br>
+    <form class="text-center mx-auto" id="signup" action="signup.php" method="post" novalidate>
+        <div>
+            <h1>Sign Up</h1>
+        </div>
+        <br>
 
-    <?php if (isset($err)): ?>
-        <?php echo "<p style='color:red;'>$err</p>" ?>
-    <?php endif; ?>
-   
-    <input type="text" id="username" name="username" class="form-control" placeholder="Username">
-    <br>
-    <input type="text" id="email" name="email" class="form-control" placeholder="Email">
-    <br>
-    <input type="password" id="password" name="password" class="form-control" placeholder="Password">
-    <br>
-    <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm Password">
-    <br>
+        <?php if (isset($err)) : ?>
+            <?php echo "<p style='color:red;'>$err</p>" ?>
+        <?php endif; ?>
 
-    <?php if (isset($sucess_msg)): ?>
-        <?php echo "<p style='color:green;'>$sucess_msg</p>" ?>
-    <?php endif; ?>
+        <input type="text" id="username" name="username" class="form-control" placeholder="Username">
+        <br>
+        <input type="text" id="email" name="email" class="form-control" placeholder="Email">
+        <br>
+        <input type="password" id="password" name="password" class="form-control" placeholder="Password">
+        <br>
+        <input type="password" id="confirm_password" name="confirm_password" class="form-control" placeholder="Confirm Password">
+        <br>
 
-    <button type="submit" class="btn btn-primary btn-default mx-auto"  name="signup">Sign Up</button>
-    <br><br>
-    <a href='login.php'>Click to Login</a>
-</form>
+        <?php if (isset($sucess_msg)) : ?>
+            <?php echo "<p style='color:green;'>$sucess_msg</p>" ?>
+        <?php endif; ?>
+
+        <button type="submit" class="btn btn-primary btn-default mx-auto" name="signup">Sign Up</button>
+        <br><br>
+        <a href='login.php'>Click to Login</a>
+    </form>
 </body>
 </html>
-

@@ -1,7 +1,10 @@
+CREATE DATABASE IF NOT EXISTS `ecotribe` /*!40100 DEFAULT CHARACTER SET latin1 */;
+USE `ecotribe`;
+
 CREATE TABLE `cart` (
   `cart_id` int(11) NOT NULL,
-  `user_id` int(11) NOT NULL,
-  `item_id` int(11) NOT NULL
+  `item_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL
 );
 
 INSERT INTO `product` (`product_name`,`product_category`, `product_price`, `product_image`) VALUES
@@ -26,6 +29,9 @@ CREATE TABLE `user` (
   `email` varchar(225) NOT NULL,
   `password_hash` varchar(225) NOT NULL
 );
+
+INSERT INTO `user` (`username`, `email`, `password_hash`) VALUES 
+('admin', 'admin@ecotribe.com', '$2y$10$ZDsHZWGuRQNWG2XTByJRqeeT1bV1ITmpu3VwbiKws4obUAufBxONq');
 
 ALTER TABLE `cart`
   ADD PRIMARY KEY (`cart_id`);
